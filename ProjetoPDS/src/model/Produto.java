@@ -13,7 +13,6 @@ public class Produto {
         this.quantidade = quantidade;
     }
 
-    // Construtor sem ID (para quando você for cadastrar um novo no banco)
     public Produto(String nome, double preco, int quantidade) {
         this.nome = nome;
         this.preco = preco;

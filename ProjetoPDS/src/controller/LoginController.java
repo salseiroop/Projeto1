@@ -11,19 +11,19 @@ public class LoginController {
     private TelaCadastroUsuario viewCadastro;
     private UsuarioDAO dao;
     private Navegador navegador;
-    private CompraController compraCtrl; // Adicionado
+    private CompraController compraCtrl;
 
     public LoginController(TelaLogin viewLogin, TelaCadastroUsuario viewCadastro, UsuarioDAO dao, Navegador navegador, CompraController compraCtrl) {
         this.viewLogin = viewLogin;
         this.viewCadastro = viewCadastro;
         this.dao = dao;
         this.navegador = navegador;
-        this.compraCtrl = compraCtrl; // Inicializado
+        this.compraCtrl = compraCtrl;
 
         this.viewLogin.acaoIrParaCadastro(e -> this.navegador.navegarPara("CADASTRO"));
-        this.viewCadastro.acaoVoltar(e -> this.navegador.navegarPara("LOGIN"));
+        this.viewCadastro.acaovoltar(e -> this.navegador.navegarPara("LOGIN"));
 
-        this.viewCadastro.acaoCadastrar(e -> {
+        this.viewCadastro.acaocadastrar(e -> {
             String nome = viewCadastro.getNome();
             String cpf = viewCadastro.getCpf();
             if (nome.isEmpty() || cpf.isEmpty()) {
@@ -42,7 +42,6 @@ public class LoginController {
                 if (u.isIsAdmin()) {
                     navegador.navegarPara("ESTOQUE");
                 } else {
-                    // Atualiza a vitrine antes de mudar de tela
                     this.compraCtrl.atualizarVitrine(); 
                     navegador.navegarPara("COMPRAS");
                 }

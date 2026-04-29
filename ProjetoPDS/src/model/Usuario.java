@@ -14,8 +14,7 @@ public class Usuario {
     public boolean isIsAdmin() {
         return isAdmin;
     }
-
-    // Getters e Setters (Requisito 6)
+    
     public String getCpf() { return cpf; }
     public void setCpf(String cpf) { this.cpf = cpf; }
     public String getNome() { return nome; }

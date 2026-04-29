@@ -19,7 +19,6 @@ public class UsuarioDAO {
             
             pstm.executeUpdate();
         } catch (SQLException e) {
-            // Trata especificamente o erro de CPF já existente
             if (e.getErrorCode() == 1062) { 
                 JOptionPane.showMessageDialog(null, "Este CPF já está cadastrado!");
             } else {
@@ -30,7 +29,6 @@ public class UsuarioDAO {
     }
 
     public Usuario validarLogin(String nome, String cpf) {
-        // Busca exata por nome e cpf
         String sql = "SELECT * FROM usuarios WHERE nome = ? AND cpf = ?";
         try (Connection conn = BancoDeDados.conectar();
              PreparedStatement pstm = conn.prepareStatement(sql)) {
@@ -51,6 +49,6 @@ public class UsuarioDAO {
             System.err.println("Erro no login (SQL): " + e.getMessage());
             e.printStackTrace();
         }
-        return null; // Retorna null se não encontrar o par Nome/CPF
+        return null;
     }
 }

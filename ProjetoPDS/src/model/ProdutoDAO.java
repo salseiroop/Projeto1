@@ -18,12 +18,30 @@ public class ProdutoDAO {
     }
 
     public void excluir(int id) {
-        String sql = "DELETE FROM produtos WHERE id = ?";
-        try (Connection conn = BancoDeDados.conectar();
-             PreparedStatement pstm = conn.prepareStatement(sql)) {
-            pstm.setInt(1, id);
-            pstm.executeUpdate();
-        } catch (SQLException e) { e.printStackTrace(); }
+        String sqlDelete = "DELETE FROM produtos WHERE id = ?";
+        String sqlReorganizar1 = "SET @count = 0";
+        String sqlReorganizar2 = "UPDATE produtos SET id = (@count := @count + 1)";
+        String sqlReorganizar3 = "ALTER TABLE produtos AUTO_INCREMENT = 1";
+
+        try (Connection conn = BancoDeDados.conectar()) {
+            conn.setAutoCommit(false); 
+
+            try (PreparedStatement pstm = conn.prepareStatement(sqlDelete)) {
+                pstm.setInt(1, id);
+                pstm.executeUpdate();
+            }
+
+
+            try (Statement stmt = conn.createStatement()) {
+                stmt.execute(sqlReorganizar1);
+                stmt.execute(sqlReorganizar2);
+                stmt.execute(sqlReorganizar3);
+            }
+
+            conn.commit();
+        } catch (SQLException e) { 
+            e.printStackTrace(); 
+        }
     }
 
     public void editar(Produto p) {
@@ -40,7 +58,7 @@ public class ProdutoDAO {
 
     public List<Produto> listarTodos() {
         List<Produto> lista = new ArrayList<>();
-        String sql = "SELECT * FROM produtos";
+        String sql = "SELECT * FROM produtos ORDER BY id ASC";
         try (Connection conn = BancoDeDados.conectar();
              PreparedStatement pstm = conn.prepareStatement(sql);
              ResultSet rs = pstm.executeQuery()) {

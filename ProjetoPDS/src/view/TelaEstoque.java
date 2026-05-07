@@ -31,10 +31,10 @@ public class TelaEstoque extends JPanel {
 
         add(new JLabel("Preço:"), "gapleft 10");
         txtPreco = new JTextField();
-        add(txtPreco, "width 70!");
+        add(txtPreco, "growx, width 80:100:150");
 
-        btnAddProduto = new JButton("Salvar");
-        add(btnAddProduto, "wrap, gapleft 15"); 
+        btnAddProduto = new JButton("Salvar Novo");
+        add(btnAddProduto, "wrap, gapleft 10");
 
         modeloTabela = new DefaultTableModel(new String[]{"ID", "Nome", "Preço", "Estoque"}, 0);
         tabela = new JTable(modeloTabela);
@@ -43,11 +43,21 @@ public class TelaEstoque extends JPanel {
         btnRemoverProduto = new JButton("Excluir Selecionado");
         add(btnRemoverProduto, "span 7, split 3, left"); 
         
-        btnEditarProduto = new JButton("Editar");
+        btnEditarProduto = new JButton("Confirmar Edição");
         add(btnEditarProduto);
 
         btnSair = new JButton("Logout");
         add(btnSair, "right");
+    }
+
+    public void setNomeProduto(String nome) { txtNomeProd.setText(nome); }
+    public void setQuantidade(String qtd) { txtQtd.setText(qtd); }
+    public void setPreco(String preco) { txtPreco.setText(preco); }
+    
+    public void limparCampos() {
+        txtNomeProd.setText("");
+        txtQtd.setText("");
+        txtPreco.setText("");
     }
 
     public void acaoAdicionarProduto(ActionListener listener) { btnAddProduto.addActionListener(listener); }
@@ -62,9 +72,4 @@ public class TelaEstoque extends JPanel {
     public String getPreco() { return txtPreco.getText(); }
 
     public void exibirAlerta(String mensagem) { JOptionPane.showMessageDialog(this, mensagem); }
-    public void limparCampos() {
-        txtNomeProd.setText("");
-        txtQtd.setText("");
-        txtPreco.setText("");
-    }
 }

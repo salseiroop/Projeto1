@@ -3,6 +3,7 @@ package controller;
 import model.Produto;
 import model.ProdutoDAO;
 import view.TelaCompras;
+import javax.swing.JOptionPane;
 import java.util.List;
 
 public class CompraController {
@@ -21,15 +22,43 @@ public class CompraController {
         this.view.acaoAdicionarCarrinho(e -> {
             int linha = view.getTabelaProdutos().getSelectedRow();
             if (linha != -1) {
+                int id = (int) view.getModVitrine().getValueAt(linha, 0);
                 String nome = view.getModVitrine().getValueAt(linha, 1).toString();
                 double preco = (double) view.getModVitrine().getValueAt(linha, 2);
-                
-                view.getModCarrinho().addRow(new Object[]{nome, 1, preco});
+                int estoqueAtual = (int) view.getModVitrine().getValueAt(linha, 3);
 
-                totalGeral += preco;
-                view.getLblTotalValor().setText(String.format("Total: R$ %.2f", totalGeral));
+                if (estoqueAtual > 0) {
+                    adicionarOuIncrementar(id, nome, preco);
+                    
+                    model.editar(new Produto(id, nome, preco, estoqueAtual - 1));
+                    
+                    atualizarVitrine();
+                    atualizarTotal();
+                } else {
+                    view.exibirAlerta("Produto sem estoque disponível!");
+                }
             } else {
                 view.exibirAlerta("Selecione um produto na vitrine!");
+            }
+        });
+
+        this.view.acaoRemoverCarrinho(e -> {
+            int linha = view.getTabelaCarrinho().getSelectedRow();
+            if (linha != -1) {
+                int id = (int) view.getModCarrinho().getValueAt(linha, 0);
+                int qtdNoCarrinho = (int) view.getModCarrinho().getValueAt(linha, 2);
+                
+                Produto pRef = model.listarTodos().stream().filter(p -> p.getId() == id).findFirst().orElse(null);
+                
+                if (pRef != null) {
+                    model.editar(new Produto(id, pRef.getNome(), pRef.getPreco(), pRef.getQuantidade() + qtdNoCarrinho));
+                }
+
+                view.getModCarrinho().removeRow(linha);
+                atualizarVitrine();
+                atualizarTotal();
+            } else {
+                view.exibirAlerta("Selecione um item no carrinho para remover!");
             }
         });
 
@@ -39,16 +68,19 @@ public class CompraController {
                 return;
             }
 
-            System.out.println("--- NOTA FISCAL ---");
+            StringBuilder nota = new StringBuilder();
+            nota.append("----- NOTA FISCAL -----\n");
             for (int i = 0; i < view.getModCarrinho().getRowCount(); i++) {
-                String item = view.getModCarrinho().getValueAt(i, 0).toString();
-                double valor = (double) view.getModCarrinho().getValueAt(i, 2);
-                System.out.println(item + " - R$ " + valor);
+                String item = view.getModCarrinho().getValueAt(i, 1).toString();
+                int qtd = (int) view.getModCarrinho().getValueAt(i, 2);
+                double sub = (double) view.getModCarrinho().getValueAt(i, 3);
+                nota.append(String.format("%s (x%d) - R$ %.2f\n", item, qtd, sub));
             }
-            System.out.println(String.format("TOTAL DA COMPRA: R$ %.2f", totalGeral));
-            System.out.println("-------------------");
+            nota.append("---------------------------\n");
+            nota.append(String.format("TOTAL: R$ %.2f", totalGeral));
 
-            view.exibirAlerta("Compra finalizada! Nota emitida no console.");
+            JOptionPane.showMessageDialog(view, nota.toString(), "Nota Fiscal Emitida", JOptionPane.INFORMATION_MESSAGE);
+            
             limparSessao();
             navegador.navegarPara("LOGIN");
         });
@@ -59,13 +91,33 @@ public class CompraController {
         });
     }
 
+    private void adicionarOuIncrementar(int id, String nome, double preco) {
+        for (int i = 0; i < view.getModCarrinho().getRowCount(); i++) {
+            if ((int)view.getModCarrinho().getValueAt(i, 0) == id) {
+                int qtdAtual = (int) view.getModCarrinho().getValueAt(i, 2);
+                int novaQtd = qtdAtual + 1;
+                view.getModCarrinho().setValueAt(novaQtd, i, 2);
+                view.getModCarrinho().setValueAt(novaQtd * preco, i, 3);
+                return;
+            }
+        }
+        view.getModCarrinho().addRow(new Object[]{id, nome, 1, preco});
+    }
+
+    private void atualizarTotal() {
+        totalGeral = 0.0;
+        for (int i = 0; i < view.getModCarrinho().getRowCount(); i++) {
+            totalGeral += (double) view.getModCarrinho().getValueAt(i, 3);
+        }
+        view.getLblTotalValor().setText(String.format("Total: R$ %.2f", totalGeral));
+    }
+
     private void limparSessao() {
         view.getModCarrinho().setRowCount(0);
         totalGeral = 0.0;
         view.getLblTotalValor().setText("Total: R$ 0.00");
     }
 
-    // Mudei para public para o LoginController poder chamar
     public void atualizarVitrine() {
         view.getModVitrine().setRowCount(0);
         List<Produto> lista = model.listarTodos();

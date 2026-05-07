@@ -15,15 +15,28 @@ public class EstoqueController {
         this.model = model;
         this.navegador = navegador;
 
-        // Cadastrar/Salvar Produto
+        this.view.getTabela().getSelectionModel().addListSelectionListener(e -> {
+            if (!e.getValueIsAdjusting()) {
+                int linha = view.getTabela().getSelectedRow();
+                if (linha != -1) {
+                    String nome = view.getModeloTabela().getValueAt(linha, 1).toString();
+                    String preco = view.getModeloTabela().getValueAt(linha, 2).toString();
+                    String qtd = view.getModeloTabela().getValueAt(linha, 3).toString();
+
+                    view.setNomeProduto(nome);
+                    view.setPreco(preco);
+                    view.setQuantidade(qtd);
+                }
+            }
+        });
+
         this.view.acaoAdicionarProduto(e -> {
             try {
                 String nome = view.getNomeProduto();
                 int qtd = Integer.parseInt(view.getQuantidade());
                 double preco = Double.parseDouble(view.getPreco().replace(",", "."));
 
-                Produto p = new Produto(nome, preco, qtd);
-                this.model.salvar(p);
+                model.salvar(new Produto(nome, preco, qtd));
                 
                 view.exibirAlerta("Produto salvo com sucesso!");
                 view.limparCampos();
@@ -33,20 +46,19 @@ public class EstoqueController {
             }
         });
 
-        // AÇÃO: Excluir Selecionado
         this.view.acaoExcluir(e -> {
             int linha = view.getTabela().getSelectedRow();
             if (linha != -1) {
                 int id = (int) view.getModeloTabela().getValueAt(linha, 0);
                 model.excluir(id);
                 atualizarTabela();
+                view.limparCampos();
                 view.exibirAlerta("Produto removido!");
             } else {
-                view.exibirAlerta("Selecione um produto na tabela!");
+                view.exibirAlerta("Selecione um produto para excluir!");
             }
         });
 
-        // AÇÃO: Editar Selecionado
         this.view.acaoEditar(e -> {
             int linha = view.getTabela().getSelectedRow();
             if (linha != -1) {
@@ -58,21 +70,18 @@ public class EstoqueController {
 
                     model.editar(new Produto(id, nome, preco, qtd));
                     atualizarTabela();
-                    view.exibirAlerta("Produto editado!");
+                    view.exibirAlerta("Produto atualizado com sucesso!");
                 } catch (Exception ex) {
-                    view.exibirAlerta("Preencha os campos corretamente para editar.");
+                    view.exibirAlerta("Erro ao editar: Verifique se todos os campos estão preenchidos corretamente.");
                 }
             } else {
-                view.exibirAlerta("Selecione um produto para editar!");
+                view.exibirAlerta("Primeiro, selecione um produto na tabela!");
             }
         });
 
-        // Logout conforme requisito 5
-        this.view.acaoSairAdmin(e -> {
-            this.navegador.navegarPara("LOGIN");
-        });
+        this.view.acaoSairAdmin(e -> this.navegador.navegarPara("LOGIN"));
         
-        atualizarTabela(); // Carrega os dados ao abrir
+        atualizarTabela();
     }
 
     private void atualizarTabela() {

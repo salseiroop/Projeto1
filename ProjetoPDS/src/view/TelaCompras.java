@@ -11,11 +11,11 @@ public class TelaCompras extends JPanel {
     private static final long serialVersionUID = 1L;
     private JTable tabelaVitrine, tabelaCarrinho;
     private DefaultTableModel modVitrine, modCarrinho;
-    private JButton btnColocarCarrinho, btnFinalizarCompra, btnDeslogar;
+    private JButton btnColocarCarrinho, btnRemoverCarrinho, btnFinalizarCompra, btnDeslogar;
     private JLabel lblTotalValor;
 
     public TelaCompras() {
-        setLayout(new MigLayout("fill, insets 20", "[grow][grow]", "[][grow][][]"));
+       setLayout(new MigLayout("fill, insets 20", "[grow][grow]", "[][grow][][]"));
 
         JLabel lblTitVitrine = new JLabel("Produtos Disponíveis");
         lblTitVitrine.setFont(new Font("Tahoma", Font.BOLD, 14));
@@ -29,12 +29,15 @@ public class TelaCompras extends JPanel {
         tabelaVitrine = new JTable(modVitrine);
         add(new JScrollPane(tabelaVitrine), "grow");
 
-        modCarrinho = new DefaultTableModel(new String[]{"Produto", "Qtd", "Subtotal"}, 0);
+        modCarrinho = new DefaultTableModel(new String[]{"ID", "Produto", "Qtd", "Subtotal"}, 0);
         tabelaCarrinho = new JTable(modCarrinho);
         add(new JScrollPane(tabelaCarrinho), "grow, wrap");
 
         btnColocarCarrinho = new JButton("Adicionar ao Carrinho >>");
-        add(btnColocarCarrinho, "center, gaptop 10");
+        add(btnColocarCarrinho, "split 2, flowx, center, gaptop 10");
+
+        btnRemoverCarrinho = new JButton("<< Remover do Carrinho");
+        add(btnRemoverCarrinho, "center, gaptop 10");
 
         lblTotalValor = new JLabel("Total: R$ 0.00");
         lblTotalValor.setFont(new Font("Tahoma", Font.BOLD, 14));
@@ -48,12 +51,14 @@ public class TelaCompras extends JPanel {
     }
 
     public void acaoAdicionarCarrinho(ActionListener l) { btnColocarCarrinho.addActionListener(l); }
+    public void acaoRemoverCarrinho(ActionListener l) { btnRemoverCarrinho.addActionListener(l); }
     public void acaoFinalizarCompra(ActionListener l) { btnFinalizarCompra.addActionListener(l); }
     public void acaoLogout(ActionListener l) { btnDeslogar.addActionListener(l); }
     
     public void exibirAlerta(String msg) { JOptionPane.showMessageDialog(this, msg); }
     
     public JTable getTabelaProdutos() { return tabelaVitrine; }
+    public JTable getTabelaCarrinho() { return tabelaCarrinho; }
     public DefaultTableModel getModVitrine() { return modVitrine; }
     public DefaultTableModel getModCarrinho() { return modCarrinho; }
     public JLabel getLblTotalValor() { return lblTotalValor; }

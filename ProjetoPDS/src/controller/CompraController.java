@@ -24,14 +24,16 @@ public class CompraController {
             if (linha != -1) {
                 int id = (int) view.getModVitrine().getValueAt(linha, 0);
                 String nome = view.getModVitrine().getValueAt(linha, 1).toString();
-                double preco = (double) view.getModVitrine().getValueAt(linha, 2);
+                
+                // AJUSTE: Pegamos o preço formatado e limpamos para converter em double
+                String precoStr = view.getModVitrine().getValueAt(linha, 2).toString();
+                double preco = Double.parseDouble(precoStr.replace("R$", "").replace(",", ".").trim());
+                
                 int estoqueAtual = (int) view.getModVitrine().getValueAt(linha, 3);
 
                 if (estoqueAtual > 0) {
                     adicionarOuIncrementar(id, nome, preco);
-                    
                     model.editar(new Produto(id, nome, preco, estoqueAtual - 1));
-                    
                     atualizarVitrine();
                     atualizarTotal();
                 } else {
@@ -73,7 +75,11 @@ public class CompraController {
             for (int i = 0; i < view.getModCarrinho().getRowCount(); i++) {
                 String item = view.getModCarrinho().getValueAt(i, 1).toString();
                 int qtd = (int) view.getModCarrinho().getValueAt(i, 2);
-                double sub = (double) view.getModCarrinho().getValueAt(i, 3);
+                
+                // AJUSTE: Limpeza do subtotal formatado para a Nota Fiscal
+                String subStr = view.getModCarrinho().getValueAt(i, 3).toString();
+                double sub = Double.parseDouble(subStr.replace("R$", "").replace(",", ".").trim());
+                
                 nota.append(String.format("%s (x%d) - R$ %.2f\n", item, qtd, sub));
             }
             nota.append("---------------------------\n");
@@ -96,18 +102,25 @@ public class CompraController {
             if ((int)view.getModCarrinho().getValueAt(i, 0) == id) {
                 int qtdAtual = (int) view.getModCarrinho().getValueAt(i, 2);
                 int novaQtd = qtdAtual + 1;
+                double novoSubtotal = novaQtd * preco;
+                
                 view.getModCarrinho().setValueAt(novaQtd, i, 2);
-                view.getModCarrinho().setValueAt(novaQtd * preco, i, 3);
+                // AJUSTE: Salva o subtotal formatado no carrinho
+                view.getModCarrinho().setValueAt(String.format("R$ %.2f", novoSubtotal), i, 3);
                 return;
             }
         }
-        view.getModCarrinho().addRow(new Object[]{id, nome, 1, preco});
+        // AJUSTE: Adiciona nova linha com o subtotal formatado
+        view.getModCarrinho().addRow(new Object[]{id, nome, 1, String.format("R$ %.2f", preco)});
     }
 
     private void atualizarTotal() {
         totalGeral = 0.0;
         for (int i = 0; i < view.getModCarrinho().getRowCount(); i++) {
-            totalGeral += (double) view.getModCarrinho().getValueAt(i, 3);
+            // AJUSTE: Para somar o total, limpamos a formatação de cada linha do carrinho
+            String subStr = view.getModCarrinho().getValueAt(i, 3).toString();
+            double sub = Double.parseDouble(subStr.replace("R$", "").replace(",", ".").trim());
+            totalGeral += sub;
         }
         view.getLblTotalValor().setText(String.format("Total: R$ %.2f", totalGeral));
     }
@@ -122,7 +135,9 @@ public class CompraController {
         view.getModVitrine().setRowCount(0);
         List<Produto> lista = model.listarTodos();
         for (Produto p : lista) {
-            view.getModVitrine().addRow(new Object[]{p.getId(), p.getNome(), p.getPreco(), p.getQuantidade()});
+            // FORMATAÇÃO: Preço da vitrine agora com R$
+            String precoFormatado = String.format("R$ %.2f", p.getPreco());
+            view.getModVitrine().addRow(new Object[]{p.getId(), p.getNome(), precoFormatado, p.getQuantidade()});
         }
     }
 }

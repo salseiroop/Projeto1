@@ -8,7 +8,8 @@ import javax.swing.JOptionPane;
 
 public class UsuarioDAO {
 
-    public void salvar(Usuario u) {
+    // Alterado de void para boolean para podermos saber se salvou de verdade
+    public boolean salvar(Usuario u) {
         String sql = "INSERT INTO usuarios (cpf, nome, is_admin) VALUES (?, ?, ?)";
         try (Connection conn = BancoDeDados.conectar();
              PreparedStatement pstm = conn.prepareStatement(sql)) {
@@ -18,6 +19,8 @@ public class UsuarioDAO {
             pstm.setBoolean(3, u.isIsAdmin());
             
             pstm.executeUpdate();
+            return true; // Retorna true se a inserção funcionou
+            
         } catch (SQLException e) {
             if (e.getErrorCode() == 1062) { 
                 JOptionPane.showMessageDialog(null, "Este CPF já está cadastrado!");
@@ -25,6 +28,7 @@ public class UsuarioDAO {
                 System.err.println("Erro ao salvar usuário: " + e.getMessage());
                 e.printStackTrace();
             }
+            return false; // Retorna false se houve erro (como CPF duplicado)
         }
     }
 

@@ -20,11 +20,11 @@ public class EstoqueController {
                 int linha = view.getTabela().getSelectedRow();
                 if (linha != -1) {
                     String nome = view.getModeloTabela().getValueAt(linha, 1).toString();
-                    String preco = view.getModeloTabela().getValueAt(linha, 2).toString();
+                    String precoTabela = view.getModeloTabela().getValueAt(linha, 2).toString();
                     String qtd = view.getModeloTabela().getValueAt(linha, 3).toString();
-
+                    String precoLimpo = precoTabela.replace("R$", "").replace(",", ".").trim();
                     view.setNomeProduto(nome);
-                    view.setPreco(preco);
+                    view.setPreco(precoLimpo);
                     view.setQuantidade(qtd);
                 }
             }
@@ -32,15 +32,18 @@ public class EstoqueController {
 
         this.view.acaoAdicionarProduto(e -> {
             try {
-                String nome = view.getNomeProduto();
-                int qtd = Integer.parseInt(view.getQuantidade());
-                double preco = Double.parseDouble(view.getPreco().replace(",", "."));
-
-                model.salvar(new Produto(nome, preco, qtd));
+                String nome = view.getNomeProduto().trim();
+                if(nome.isEmpty()) { view.exibirAlerta("O nome não pode estar vazio!"); return; }
                 
-                view.exibirAlerta("Produto salvo com sucesso!");
-                view.limparCampos();
-                atualizarTabela();
+                int qtd = Integer.parseInt(view.getQuantidade());
+                double preco = Double.parseDouble(view.getPreco().replace("R$", "").replace(",", ".").trim());
+
+                // Só limpa e avisa sucesso se o DAO retornar true (não for duplicado)
+                if (model.salvar(new Produto(nome, preco, qtd))) {
+                    view.exibirAlerta("Produto salvo com sucesso!");
+                    view.limparCampos();
+                    atualizarTabela();
+                }
             } catch (Exception ex) {
                 view.exibirAlerta("Erro nos dados: Verifique valores e quantidades.");
             }
@@ -66,13 +69,14 @@ public class EstoqueController {
                     int id = (int) view.getModeloTabela().getValueAt(linha, 0);
                     String nome = view.getNomeProduto();
                     int qtd = Integer.parseInt(view.getQuantidade());
-                    double preco = Double.parseDouble(view.getPreco().replace(",", "."));
+                    double preco = Double.parseDouble(view.getPreco().replace("R$", "").replace(",", ".").trim());
 
-                    model.editar(new Produto(id, nome, preco, qtd));
-                    atualizarTabela();
-                    view.exibirAlerta("Produto atualizado com sucesso!");
+                    if (model.editar(new Produto(id, nome, preco, qtd))) {
+                        atualizarTabela();
+                        view.exibirAlerta("Produto atualizado com sucesso!");
+                    }
                 } catch (Exception ex) {
-                    view.exibirAlerta("Erro ao editar: Verifique se todos os campos estão preenchidos corretamente.");
+                    view.exibirAlerta("Erro ao editar: Verifique os campos.");
                 }
             } else {
                 view.exibirAlerta("Primeiro, selecione um produto na tabela!");
@@ -80,7 +84,6 @@ public class EstoqueController {
         });
 
         this.view.acaoSairAdmin(e -> this.navegador.navegarPara("LOGIN"));
-        
         atualizarTabela();
     }
 
@@ -88,7 +91,8 @@ public class EstoqueController {
         view.getModeloTabela().setRowCount(0);
         List<Produto> lista = model.listarTodos();
         for (Produto p : lista) {
-            view.getModeloTabela().addRow(new Object[]{p.getId(), p.getNome(), p.getPreco(), p.getQuantidade()});
+            String precoFormatado = String.format("R$ %.2f", p.getPreco());
+            view.getModeloTabela().addRow(new Object[]{p.getId(), p.getNome(), precoFormatado, p.getQuantidade()});
         }
     }
 }

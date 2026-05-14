@@ -20,23 +20,36 @@ public class LoginController {
         this.navegador = navegador;
         this.compraCtrl = compraCtrl;
 
+        // Navegação
         this.viewLogin.acaoIrParaCadastro(e -> this.navegador.navegarPara("CADASTRO"));
         this.viewCadastro.acaovoltar(e -> this.navegador.navegarPara("LOGIN"));
 
+        // Lógica de Cadastro
         this.viewCadastro.acaocadastrar(e -> {
             String nome = viewCadastro.getNome();
             String cpf = viewCadastro.getCpf();
+            
             if (nome.isEmpty() || cpf.isEmpty()) {
                 JOptionPane.showMessageDialog(null, "Preencha todos os campos!");
                 return;
             }
-            dao.salvar(new Usuario(cpf, nome, viewCadastro.isAdministrador()));
-            JOptionPane.showMessageDialog(null, "Cadastrado com sucesso!");
-            this.navegador.navegarPara("LOGIN");
+
+            // O DAO deve retornar boolean para esta lógica funcionar
+            boolean sucesso = dao.salvar(new Usuario(cpf, nome, viewCadastro.isAdministrador()));
+            
+            if (sucesso) {
+                JOptionPane.showMessageDialog(null, "Cadastrado com sucesso!");
+                this.navegador.navegarPara("LOGIN");
+            }
         });
 
+        // Lógica de Login
         this.viewLogin.acaoLogin(e -> {
-            Usuario u = dao.validarLogin(viewLogin.getNome(), viewLogin.getSenha());
+            String nome = viewLogin.getNome();
+            // AQUI ESTAVA O ERRO: Chamando getSenha() para bater com a sua TelaLogin
+            String cpf = viewLogin.getSenha(); 
+            
+            Usuario u = dao.validarLogin(nome, cpf);
             
             if (u != null) {
                 if (u.isIsAdmin()) {
@@ -45,6 +58,7 @@ public class LoginController {
                     this.compraCtrl.atualizarVitrine(); 
                     navegador.navegarPara("COMPRAS");
                 }
+                viewLogin.limparCampos();
             } else {
                 JOptionPane.showMessageDialog(null, "Usuário ou CPF incorretos!");
             }

@@ -3,10 +3,12 @@ package model;
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
+import javax.swing.JOptionPane;
 
 public class ProdutoDAO {
     
-    public void salvar(Produto p) {
+    // Mudado para retornar boolean
+    public boolean salvar(Produto p) {
         String sql = "INSERT INTO produtos (nome, preco, quantidade) VALUES (?, ?, ?)";
         try (Connection conn = BancoDeDados.conectar();
              PreparedStatement pstm = conn.prepareStatement(sql)) {
@@ -14,7 +16,15 @@ public class ProdutoDAO {
             pstm.setDouble(2, p.getPreco());
             pstm.setInt(3, p.getQuantidade());
             pstm.executeUpdate();
-        } catch (SQLException e) { e.printStackTrace(); }
+            return true;
+        } catch (SQLException e) {
+            if (e.getErrorCode() == 1062) { // Código de erro para nome duplicado
+                JOptionPane.showMessageDialog(null, "Erro: Este produto já está cadastrado!");
+            } else {
+                e.printStackTrace();
+            }
+            return false;
+        }
     }
 
     public void excluir(int id) {
@@ -25,26 +35,20 @@ public class ProdutoDAO {
 
         try (Connection conn = BancoDeDados.conectar()) {
             conn.setAutoCommit(false); 
-
             try (PreparedStatement pstm = conn.prepareStatement(sqlDelete)) {
                 pstm.setInt(1, id);
                 pstm.executeUpdate();
             }
-
-
             try (Statement stmt = conn.createStatement()) {
                 stmt.execute(sqlReorganizar1);
                 stmt.execute(sqlReorganizar2);
                 stmt.execute(sqlReorganizar3);
             }
-
             conn.commit();
-        } catch (SQLException e) { 
-            e.printStackTrace(); 
-        }
+        } catch (SQLException e) { e.printStackTrace(); }
     }
 
-    public void editar(Produto p) {
+    public boolean editar(Produto p) {
         String sql = "UPDATE produtos SET nome = ?, preco = ?, quantidade = ? WHERE id = ?";
         try (Connection conn = BancoDeDados.conectar();
              PreparedStatement pstm = conn.prepareStatement(sql)) {
@@ -53,7 +57,15 @@ public class ProdutoDAO {
             pstm.setInt(3, p.getQuantidade());
             pstm.setInt(4, p.getId());
             pstm.executeUpdate();
-        } catch (SQLException e) { e.printStackTrace(); }
+            return true;
+        } catch (SQLException e) {
+            if (e.getErrorCode() == 1062) {
+                JOptionPane.showMessageDialog(null, "Erro: Já existe outro produto com este nome!");
+            } else {
+                e.printStackTrace();
+            }
+            return false;
+        }
     }
 
     public List<Produto> listarTodos() {

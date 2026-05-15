@@ -36,7 +36,7 @@ public class Main {
         EstoqueController estoqueCtrl = new EstoqueController(telaEstoque, produtoDAO, navegador);
         CompraController compraCtrl = new CompraController(telaCompras, produtoDAO, navegador);
 
-        new LoginController(telaLogin, telaCadastro, usuarioDAO, navegador, compraCtrl);
+        new LoginController(telaLogin, telaCadastro, usuarioDAO, navegador, compraCtrl, estoqueCtrl);
 
         navegador.adicionarPainel("LOGIN", telaLogin);
         navegador.adicionarPainel("CADASTRO", telaCadastro);

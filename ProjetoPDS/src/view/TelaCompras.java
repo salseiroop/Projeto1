@@ -15,14 +15,14 @@ public class TelaCompras extends JPanel {
     private JLabel lblTotalValor;
 
     public TelaCompras() {
-       setLayout(new MigLayout("fill, insets 20", "[grow][grow]", "[][grow][][]"));
+       setLayout(new MigLayout("fill, insets 20", "[grow, fill][grow, fill]", "[][grow, fill][][][]"));
 
         JLabel lblTitVitrine = new JLabel("Produtos Disponíveis");
-        lblTitVitrine.setFont(new Font("Tahoma", Font.BOLD, 14));
+        lblTitVitrine.setFont(new Font("Tahoma", Font.BOLD, 16));
         add(lblTitVitrine, "center");
 
         JLabel lblTitCarrinho = new JLabel("Seu Carrinho");
-        lblTitCarrinho.setFont(new Font("Tahoma", Font.BOLD, 14));
+        lblTitCarrinho.setFont(new Font("Tahoma", Font.BOLD, 16));
         add(lblTitCarrinho, "center, wrap");
 
         modVitrine = new DefaultTableModel(new String[]{"ID", "Produto", "Preço", "Estoque"}, 0);
@@ -33,29 +33,26 @@ public class TelaCompras extends JPanel {
         tabelaCarrinho = new JTable(modCarrinho);
         add(new JScrollPane(tabelaCarrinho), "grow, wrap");
 
-        btnColocarCarrinho = new JButton("Adicionar ao Carrinho >>");
-        add(btnColocarCarrinho, "split 2, flowx, center, gaptop 10");
-
-        btnRemoverCarrinho = new JButton("<< Remover do Carrinho");
-        add(btnRemoverCarrinho, "center, gaptop 10");
+        btnColocarCarrinho = new JButton("Adicionar >>");
+        btnRemoverCarrinho = new JButton("<< Remover");
+        add(btnColocarCarrinho, "span 2, split 2, center, gaptop 10, height 35!");
+        add(btnRemoverCarrinho, "height 35!, wrap");
 
         lblTotalValor = new JLabel("Total: R$ 0.00");
-        lblTotalValor.setFont(new Font("Tahoma", Font.BOLD, 14));
-        add(lblTotalValor, "center, gaptop 10, wrap");
+        lblTotalValor.setFont(new Font("Tahoma", Font.BOLD, 18));
+        add(lblTotalValor, "span 2, center, gapy 10, wrap");
 
-        btnDeslogar = new JButton("Logout");
-        add(btnDeslogar, "left, gaptop 15");
-
-        btnFinalizarCompra = new JButton("Emitir Nota Fiscal");
-        add(btnFinalizarCompra, "right, gaptop 15");
+        btnDeslogar = new JButton("Sair");
+        btnFinalizarCompra = new JButton("Finalizar e Emitir Nota");
+        add(btnDeslogar, "left, gaptop 15, width 100!");
+        add(btnFinalizarCompra, "right, gaptop 15, height 40!");
     }
 
     public void acaoAdicionarCarrinho(ActionListener l) { btnColocarCarrinho.addActionListener(l); }
     public void acaoRemoverCarrinho(ActionListener l) { btnRemoverCarrinho.addActionListener(l); }
     public void acaoFinalizarCompra(ActionListener l) { btnFinalizarCompra.addActionListener(l); }
     public void acaoLogout(ActionListener l) { btnDeslogar.addActionListener(l); }
-    
-    public void exibirAlerta(String msg) { JOptionPane.showMessageDialog(this, msg); }
+    public void exibirAlerta(String m) { JOptionPane.showMessageDialog(this, m); }
     
     public JTable getTabelaProdutos() { return tabelaVitrine; }
     public JTable getTabelaCarrinho() { return tabelaCarrinho; }

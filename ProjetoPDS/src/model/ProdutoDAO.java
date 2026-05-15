@@ -7,7 +7,21 @@ import javax.swing.JOptionPane;
 
 public class ProdutoDAO {
     
-    // Mudado para retornar boolean
+    // Método para buscar o nome do último produto inserido no banco
+    public String buscarUltimoNome() {
+        String sql = "SELECT nome FROM produtos ORDER BY id DESC LIMIT 1";
+        try (Connection conn = BancoDeDados.conectar();
+             PreparedStatement pstm = conn.prepareStatement(sql);
+             ResultSet rs = pstm.executeQuery()) {
+            if (rs.next()) {
+                return rs.getString("nome");
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return ""; 
+    }
+
     public boolean salvar(Produto p) {
         String sql = "INSERT INTO produtos (nome, preco, quantidade) VALUES (?, ?, ?)";
         try (Connection conn = BancoDeDados.conectar();
@@ -18,7 +32,7 @@ public class ProdutoDAO {
             pstm.executeUpdate();
             return true;
         } catch (SQLException e) {
-            if (e.getErrorCode() == 1062) { // Código de erro para nome duplicado
+            if (e.getErrorCode() == 1062) { 
                 JOptionPane.showMessageDialog(null, "Erro: Este produto já está cadastrado!");
             } else {
                 e.printStackTrace();

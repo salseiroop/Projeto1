@@ -32,14 +32,19 @@ public class EstoqueController {
 
         this.view.acaoAdicionarProduto(e -> {
             try {
-                String nome = view.getNomeProduto().trim();
-                if(nome.isEmpty()) { view.exibirAlerta("O nome não pode estar vazio!"); return; }
+                String nomeNovo = view.getNomeProduto().trim();
+                if(nomeNovo.isEmpty()) { view.exibirAlerta("O nome não pode estar vazio!"); return; }
+                
+                String ultimoNome = model.buscarUltimoNome();
+                if (nomeNovo.equalsIgnoreCase(ultimoNome)) {
+                    view.exibirAlerta("Erro: Este produto é idêntico ao último cadastrado!");
+                    return;
+                }
                 
                 int qtd = Integer.parseInt(view.getQuantidade());
                 double preco = Double.parseDouble(view.getPreco().replace("R$", "").replace(",", ".").trim());
 
-                // Só limpa e avisa sucesso se o DAO retornar true (não for duplicado)
-                if (model.salvar(new Produto(nome, preco, qtd))) {
+                if (model.salvar(new Produto(nomeNovo, preco, qtd))) {
                     view.exibirAlerta("Produto salvo com sucesso!");
                     view.limparCampos();
                     atualizarTabela();
@@ -74,6 +79,8 @@ public class EstoqueController {
                     if (model.editar(new Produto(id, nome, preco, qtd))) {
                         atualizarTabela();
                         view.exibirAlerta("Produto atualizado com sucesso!");
+                        view.limparCampos();
+                        view.getTabela().clearSelection();
                     }
                 } catch (Exception ex) {
                     view.exibirAlerta("Erro ao editar: Verifique os campos.");
@@ -87,7 +94,7 @@ public class EstoqueController {
         atualizarTabela();
     }
 
-    private void atualizarTabela() {
+    public void atualizarTabela() {
         view.getModeloTabela().setRowCount(0);
         List<Produto> lista = model.listarTodos();
         for (Produto p : lista) {

@@ -12,55 +12,60 @@ public class LoginController {
     private UsuarioDAO dao;
     private Navegador navegador;
     private CompraController compraCtrl;
+    private EstoqueController estoqueCtrl; 
 
-    public LoginController(TelaLogin viewLogin, TelaCadastroUsuario viewCadastro, UsuarioDAO dao, Navegador navegador, CompraController compraCtrl) {
+    public LoginController(TelaLogin viewLogin, TelaCadastroUsuario viewCadastro, UsuarioDAO dao, Navegador navegador, CompraController compraCtrl, EstoqueController estoqueCtrl) {
         this.viewLogin = viewLogin;
         this.viewCadastro = viewCadastro;
         this.dao = dao;
         this.navegador = navegador;
         this.compraCtrl = compraCtrl;
+        this.estoqueCtrl = estoqueCtrl;
 
-        // Navegação
         this.viewLogin.acaoIrParaCadastro(e -> this.navegador.navegarPara("CADASTRO"));
         this.viewCadastro.acaovoltar(e -> this.navegador.navegarPara("LOGIN"));
 
-        // Lógica de Cadastro
         this.viewCadastro.acaocadastrar(e -> {
-            String nome = viewCadastro.getNome();
+            String nome = viewCadastro.getNome().trim();
             String cpf = viewCadastro.getCpf();
-            
-            if (nome.isEmpty() || cpf.isEmpty()) {
-                JOptionPane.showMessageDialog(null, "Preencha todos os campos!");
+
+            if (nome.isEmpty() || cpf.length() < 11) {
+                JOptionPane.showMessageDialog(null, "Preencha o nome e o CPF completo!");
                 return;
             }
 
-            // O DAO deve retornar boolean para esta lógica funcionar
-            boolean sucesso = dao.salvar(new Usuario(cpf, nome, viewCadastro.isAdministrador()));
+            Usuario novoUsuario = new Usuario(cpf, nome, viewCadastro.isAdministrador());
             
-            if (sucesso) {
-                JOptionPane.showMessageDialog(null, "Cadastrado com sucesso!");
+            if (dao.salvar(novoUsuario)) {
+                JOptionPane.showMessageDialog(null, "Usuário cadastrado com sucesso!");
+                viewCadastro.limparcampos();
                 this.navegador.navegarPara("LOGIN");
             }
         });
 
-        // Lógica de Login
         this.viewLogin.acaoLogin(e -> {
-            String nome = viewLogin.getNome();
-            // AQUI ESTAVA O ERRO: Chamando getSenha() para bater com a sua TelaLogin
+            String nome = viewLogin.getNome().trim();
             String cpf = viewLogin.getSenha(); 
-            
+
+            if (nome.isEmpty() || cpf.isEmpty()) {
+                JOptionPane.showMessageDialog(null, "Informe o nome e o CPF para entrar!");
+                return;
+            }
+
             Usuario u = dao.validarLogin(nome, cpf);
             
             if (u != null) {
+                viewLogin.limparCampos();
+
                 if (u.isIsAdmin()) {
+                    this.estoqueCtrl.atualizarTabela(); 
                     navegador.navegarPara("ESTOQUE");
                 } else {
                     this.compraCtrl.atualizarVitrine(); 
                     navegador.navegarPara("COMPRAS");
                 }
-                viewLogin.limparCampos();
             } else {
-                JOptionPane.showMessageDialog(null, "Usuário ou CPF incorretos!");
+                JOptionPane.showMessageDialog(null, "Nome de usuário ou CPF incorretos!");
             }
         });
     }

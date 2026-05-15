@@ -1,19 +1,18 @@
-drop database if exists db_supermercado;
-create database db_supermercado;
-use db_supermercado;
+DROP DATABASE IF EXISTS db_supermercado;
+CREATE DATABASE db_supermercado;
+USE db_supermercado;
 
-create table produtos (
-  id int not null auto_increment primary key,
-  nome varchar(100) not null,
-  preco decimal(10,2) not null,
-  quantidade int not null
+CREATE TABLE produtos (
+  id INT NOT NULL AUTO_INCREMENT PRIMARY KEY,
+  nome VARCHAR(100) NOT NULL UNIQUE, -- UNIQUE para segurança total no banco
+  preco DECIMAL(10,2) NOT NULL,
+  quantidade INT NOT NULL
 );
 
-create table usuarios (
-  cpf varchar(14) not null primary key,
-  nome varchar(100) not null,
-  is_admin tinyint(1) not null
+CREATE TABLE usuarios (
+  cpf VARCHAR(14) NOT NULL PRIMARY KEY,
+  nome VARCHAR(100) NOT NULL,
+  is_admin TINYINT(1) NOT NULL
 );
 
-insert into usuarios (cpf, nome, is_admin) values 
-('123', 'adm', 1);
+INSERT INTO usuarios (cpf, nome, is_admin) VALUES ('123', 'adm', 1);

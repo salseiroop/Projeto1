@@ -6,8 +6,7 @@ import java.util.List;
 import javax.swing.JOptionPane;
 
 public class ProdutoDAO {
-    
-    // Método para buscar o nome do último produto inserido no banco
+
     public String buscarUltimoNome() {
         String sql = "SELECT nome FROM produtos ORDER BY id DESC LIMIT 1";
         try (Connection conn = BancoDeDados.conectar();
@@ -19,7 +18,7 @@ public class ProdutoDAO {
         } catch (SQLException e) {
             e.printStackTrace();
         }
-        return ""; 
+        return "";
     }
 
     public boolean salvar(Produto p) {
@@ -32,9 +31,14 @@ public class ProdutoDAO {
             pstm.executeUpdate();
             return true;
         } catch (SQLException e) {
-            if (e.getErrorCode() == 1062) { 
-                JOptionPane.showMessageDialog(null, "Erro: Este produto já está cadastrado!");
+            if (e.getErrorCode() == 1062) {
+                JOptionPane.showMessageDialog(null,
+                    "Erro: Já existe um produto com este nome cadastrado!",
+                    "Produto Duplicado", JOptionPane.WARNING_MESSAGE);
             } else {
+                JOptionPane.showMessageDialog(null,
+                    "Erro ao salvar produto no banco de dados.\nDetalhe: " + e.getMessage(),
+                    "Erro de Banco", JOptionPane.ERROR_MESSAGE);
                 e.printStackTrace();
             }
             return false;
@@ -42,24 +46,29 @@ public class ProdutoDAO {
     }
 
     public void excluir(int id) {
-        String sqlDelete = "DELETE FROM produtos WHERE id = ?";
-        String sqlReorganizar1 = "SET @count = 0";
-        String sqlReorganizar2 = "UPDATE produtos SET id = (@count := @count + 1)";
-        String sqlReorganizar3 = "ALTER TABLE produtos AUTO_INCREMENT = 1";
+        String sqlDelete      = "DELETE FROM produtos WHERE id = ?";
+        String sqlReorg1      = "SET @count = 0";
+        String sqlReorg2      = "UPDATE produtos SET id = (@count := @count + 1)";
+        String sqlReorg3      = "ALTER TABLE produtos AUTO_INCREMENT = 1";
 
         try (Connection conn = BancoDeDados.conectar()) {
-            conn.setAutoCommit(false); 
+            conn.setAutoCommit(false);
             try (PreparedStatement pstm = conn.prepareStatement(sqlDelete)) {
                 pstm.setInt(1, id);
                 pstm.executeUpdate();
             }
             try (Statement stmt = conn.createStatement()) {
-                stmt.execute(sqlReorganizar1);
-                stmt.execute(sqlReorganizar2);
-                stmt.execute(sqlReorganizar3);
+                stmt.execute(sqlReorg1);
+                stmt.execute(sqlReorg2);
+                stmt.execute(sqlReorg3);
             }
             conn.commit();
-        } catch (SQLException e) { e.printStackTrace(); }
+        } catch (SQLException e) {
+            JOptionPane.showMessageDialog(null,
+                "Erro ao excluir produto.\nDetalhe: " + e.getMessage(),
+                "Erro de Banco", JOptionPane.ERROR_MESSAGE);
+            e.printStackTrace();
+        }
     }
 
     public boolean editar(Produto p) {
@@ -74,8 +83,13 @@ public class ProdutoDAO {
             return true;
         } catch (SQLException e) {
             if (e.getErrorCode() == 1062) {
-                JOptionPane.showMessageDialog(null, "Erro: Já existe outro produto com este nome!");
+                JOptionPane.showMessageDialog(null,
+                    "Erro: Já existe outro produto com este nome!",
+                    "Produto Duplicado", JOptionPane.WARNING_MESSAGE);
             } else {
+                JOptionPane.showMessageDialog(null,
+                    "Erro ao editar produto.\nDetalhe: " + e.getMessage(),
+                    "Erro de Banco", JOptionPane.ERROR_MESSAGE);
                 e.printStackTrace();
             }
             return false;
@@ -89,9 +103,19 @@ public class ProdutoDAO {
              PreparedStatement pstm = conn.prepareStatement(sql);
              ResultSet rs = pstm.executeQuery()) {
             while (rs.next()) {
-                lista.add(new Produto(rs.getInt("id"), rs.getString("nome"), rs.getDouble("preco"), rs.getInt("quantidade")));
+                lista.add(new Produto(
+                    rs.getInt("id"),
+                    rs.getString("nome"),
+                    rs.getDouble("preco"),
+                    rs.getInt("quantidade")
+                ));
             }
-        } catch (SQLException e) { e.printStackTrace(); }
+        } catch (SQLException e) {
+            JOptionPane.showMessageDialog(null,
+                "Erro ao carregar lista de produtos.\nDetalhe: " + e.getMessage(),
+                "Erro de Banco", JOptionPane.ERROR_MESSAGE);
+            e.printStackTrace();
+        }
         return lista;
     }
 }

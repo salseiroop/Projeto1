@@ -19,10 +19,10 @@ public class EstoqueController {
             if (!e.getValueIsAdjusting()) {
                 int linha = view.getTabela().getSelectedRow();
                 if (linha != -1) {
-                    String nome = view.getModeloTabela().getValueAt(linha, 1).toString();
-                    String precoTabela = view.getModeloTabela().getValueAt(linha, 2).toString();
-                    String qtd = view.getModeloTabela().getValueAt(linha, 3).toString();
-                    String precoLimpo = precoTabela.replace("R$", "").replace(",", ".").trim();
+                    String nome     = view.getModeloTabela().getValueAt(linha, 1).toString();
+                    String precoTab = view.getModeloTabela().getValueAt(linha, 2).toString();
+                    String qtd      = view.getModeloTabela().getValueAt(linha, 3).toString();
+                    String precoLimpo = precoTab.replace("R$", "").replace(",", ".").trim();
                     view.setNomeProduto(nome);
                     view.setPreco(precoLimpo);
                     view.setQuantidade(qtd);
@@ -31,26 +31,68 @@ public class EstoqueController {
         });
 
         this.view.acaoAdicionarProduto(e -> {
-            try {
-                String nomeNovo = view.getNomeProduto().trim();
-                if(nomeNovo.isEmpty()) { view.exibirAlerta("O nome não pode estar vazio!"); return; }
-                
-                String ultimoNome = model.buscarUltimoNome();
-                if (nomeNovo.equalsIgnoreCase(ultimoNome)) {
-                    view.exibirAlerta("Erro: Este produto é idêntico ao último cadastrado!");
-                    return;
-                }
-                
-                int qtd = Integer.parseInt(view.getQuantidade());
-                double preco = Double.parseDouble(view.getPreco().replace("R$", "").replace(",", ".").trim());
+            String nomeNovo = view.getNomeProduto().trim();
+            if (nomeNovo.isEmpty()) {
+                view.exibirAlerta("O nome do produto não pode estar vazio!");
+                return;
+            }
+            if (nomeNovo.length() > 100) {
+                view.exibirAlerta("O nome do produto deve ter no máximo 100 caracteres!");
+                return;
+            }
+            if (nomeNovo.matches("\\d+")) {
+                view.exibirAlerta("O nome do produto não pode ser somente números!");
+                return;
+            }
 
-                if (model.salvar(new Produto(nomeNovo, preco, qtd))) {
-                    view.exibirAlerta("Produto salvo com sucesso!");
-                    view.limparCampos();
-                    atualizarTabela();
-                }
-            } catch (Exception ex) {
-                view.exibirAlerta("Erro nos dados: Verifique valores e quantidades.");
+            String qtdStr   = view.getQuantidade().trim();
+            String precoStr = view.getPreco().replace("R$", "").replace(",", ".").trim();
+
+            if (qtdStr.isEmpty()) {
+                view.exibirAlerta("O campo Quantidade não pode estar vazio!");
+                return;
+            }
+            if (precoStr.isEmpty()) {
+                view.exibirAlerta("O campo Preço não pode estar vazio!");
+                return;
+            }
+
+            int qtd;
+            try {
+                qtd = Integer.parseInt(qtdStr);
+            } catch (NumberFormatException ex) {
+                view.exibirAlerta("Quantidade inválida! Digite apenas números inteiros.");
+                return;
+            }
+
+            if (qtd < 0) {
+                view.exibirAlerta("A quantidade não pode ser negativa!");
+                return;
+            }
+
+            double preco;
+            try {
+                preco = Double.parseDouble(precoStr);
+            } catch (NumberFormatException ex) {
+                view.exibirAlerta("Preço inválido! Use apenas números (ex: 9.99).");
+                return;
+            }
+
+            if (preco < 0) {
+                view.exibirAlerta("O preço não pode ser negativo!");
+                return;
+            }
+
+            String ultimoNome = model.buscarUltimoNome();
+            if (nomeNovo.equalsIgnoreCase(ultimoNome)) {
+                view.exibirAlerta("Erro: Este produto é idêntico ao último cadastrado!");
+                return;
+            }
+
+            if (model.salvar(new Produto(nomeNovo, preco, qtd))) {
+                view.exibirAlerta("Produto salvo com sucesso!");
+                view.limparCampos();
+                atualizarTabela();
             }
         });
 
@@ -61,32 +103,76 @@ public class EstoqueController {
                 model.excluir(id);
                 atualizarTabela();
                 view.limparCampos();
-                view.exibirAlerta("Produto removido!");
+                view.exibirAlerta("Produto removido com sucesso!");
             } else {
-                view.exibirAlerta("Selecione um produto para excluir!");
+                view.exibirAlerta("Selecione um produto na tabela para excluir!");
             }
         });
 
         this.view.acaoEditar(e -> {
             int linha = view.getTabela().getSelectedRow();
-            if (linha != -1) {
-                try {
-                    int id = (int) view.getModeloTabela().getValueAt(linha, 0);
-                    String nome = view.getNomeProduto();
-                    int qtd = Integer.parseInt(view.getQuantidade());
-                    double preco = Double.parseDouble(view.getPreco().replace("R$", "").replace(",", ".").trim());
-
-                    if (model.editar(new Produto(id, nome, preco, qtd))) {
-                        atualizarTabela();
-                        view.exibirAlerta("Produto atualizado com sucesso!");
-                        view.limparCampos();
-                        view.getTabela().clearSelection();
-                    }
-                } catch (Exception ex) {
-                    view.exibirAlerta("Erro ao editar: Verifique os campos.");
-                }
-            } else {
+            if (linha == -1) {
                 view.exibirAlerta("Primeiro, selecione um produto na tabela!");
+                return;
+            }
+
+            String nome     = view.getNomeProduto().trim();
+            String qtdStr   = view.getQuantidade().trim();
+            String precoStr = view.getPreco().replace("R$", "").replace(",", ".").trim();
+
+            if (nome.isEmpty()) {
+                view.exibirAlerta("O nome do produto não pode estar vazio!");
+                return;
+            }
+            if (nome.length() > 100) {
+                view.exibirAlerta("O nome do produto deve ter no máximo 100 caracteres!");
+                return;
+            }
+            if (nome.matches("\\d+")) {
+                view.exibirAlerta("O nome do produto não pode ser somente números!");
+                return;
+            }
+            if (qtdStr.isEmpty()) {
+                view.exibirAlerta("O campo Quantidade não pode estar vazio!");
+                return;
+            }
+            if (precoStr.isEmpty()) {
+                view.exibirAlerta("O campo Preço não pode estar vazio!");
+                return;
+            }
+
+            int qtd;
+            try {
+                qtd = Integer.parseInt(qtdStr);
+            } catch (NumberFormatException ex) {
+                view.exibirAlerta("Quantidade inválida! Digite apenas números inteiros.");
+                return;
+            }
+
+            if (qtd < 0) {
+                view.exibirAlerta("A quantidade não pode ser negativa!");
+                return;
+            }
+
+            double preco;
+            try {
+                preco = Double.parseDouble(precoStr);
+            } catch (NumberFormatException ex) {
+                view.exibirAlerta("Preço inválido! Use apenas números (ex: 9.99).");
+                return;
+            }
+
+            if (preco < 0) {
+                view.exibirAlerta("O preço não pode ser negativo!");
+                return;
+            }
+
+            int id = (int) view.getModeloTabela().getValueAt(linha, 0);
+            if (model.editar(new Produto(id, nome, preco, qtd))) {
+                atualizarTabela();
+                view.exibirAlerta("Produto atualizado com sucesso!");
+                view.limparCampos();
+                view.getTabela().clearSelection();
             }
         });
 

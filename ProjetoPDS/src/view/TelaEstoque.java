@@ -15,7 +15,6 @@ public class TelaEstoque extends JPanel {
     private DefaultTableModel modeloTabela;
 
     public TelaEstoque() {
-        // 'grow' na terceira linha garante que a tabela se expanda verticalmente
         setLayout(new MigLayout("fill, insets 25", "[][grow][][grow][][grow][]", "[][][grow, fill][]"));
 
         JLabel lblTitulo = new JLabel("Gerenciamento de Estoque (ADM)");

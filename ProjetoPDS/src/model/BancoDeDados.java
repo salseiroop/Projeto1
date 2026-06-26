@@ -3,6 +3,7 @@ package model;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
+import javax.swing.JOptionPane;
 
 public class BancoDeDados {
     private static final String URL = "jdbc:mysql://localhost:3306/db_supermercado?useTimezone=true&serverTimezone=UTC";
@@ -14,7 +15,14 @@ public class BancoDeDados {
             Class.forName("com.mysql.cj.jdbc.Driver");
             return DriverManager.getConnection(URL, USER, PASS);
         } catch (ClassNotFoundException e) {
-            throw new SQLException("Driver não encontrado!");
+            throw new SQLException("Driver JDBC não encontrado! Verifique as bibliotecas do projeto.");
+        } catch (SQLException e) {
+            JOptionPane.showMessageDialog(null,
+                "Não foi possível conectar ao banco de dados.\n" +
+                "Verifique se o MySQL está em execução e tente novamente.\n\n" +
+                "Detalhe: " + e.getMessage(),
+                "Erro de Conexão", JOptionPane.ERROR_MESSAGE);
+            throw e;
         }
     }
 }

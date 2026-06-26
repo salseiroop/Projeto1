@@ -15,7 +15,6 @@ public class TelaLogin extends JPanel {
     private JButton btnAcessar, btnIrCadastro;
 
     public TelaLogin() {
-        // Uso de 'push' nas colunas externas para centralizar o bloco de login
         setLayout(new MigLayout("fill, insets 50", "[grow, push][right][300, grow][grow, push]", "[grow, push][][][][][grow, push]"));
 
         JLabel lblTitulo = new JLabel("Acesso ao Sistema");
